@@ -38,7 +38,7 @@ def _walk_json(value):
 
 
 def test_json_walk_includes_scalar_list_leaves():
-    values = {value for _, value in _walk_json({"items": ["sensitive", 42]})}
+    values = [value for _, value in _walk_json({"items": ["sensitive", 42]})]
 
     assert "sensitive" in values
     assert 42 in values

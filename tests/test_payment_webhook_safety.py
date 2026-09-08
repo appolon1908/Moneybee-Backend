@@ -33,6 +33,15 @@ def _walk_json(value):
     elif isinstance(value, list):
         for item in value:
             yield from _walk_json(item)
+    else:
+        yield None, value
+
+
+def test_json_walk_includes_scalar_list_leaves():
+    values = {value for _, value in _walk_json({"items": ["sensitive", 42]})}
+
+    assert "sensitive" in values
+    assert 42 in values
 
 
 async def test_payment_webhook_retains_only_minimized_operational_fields(monkeypatch):

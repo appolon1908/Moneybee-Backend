@@ -6,7 +6,9 @@
   "role": "application",
   "release_intent_workflow": ".github/workflows/manual-release-intent.yml",
   "deployment_authority": true,
+  "runtime_mutation_authority": false,
   "require_verified_commit": true,
+  "required_check_app_id": 15368,
   "required_checks": [
     "orchestrator-contract",
     "verify",
@@ -21,12 +23,19 @@
   "artifact_policy": {
     "minimum_images": 3,
     "maximum_images": 3,
+    "image_repositories": [
+      "ghcr.io/appolon1908-hue/moneybee-api",
+      "ghcr.io/appolon1908-hue/moneybee-worker",
+      "ghcr.io/appolon1908-hue/moneybee-migrate"
+    ],
     "require_digest": true,
     "allow_rebuild_after_staging": false,
     "allow_retag_after_staging": false,
     "require_sbom": true,
     "require_provenance": true,
-    "require_signature": false
+    "require_signature": false,
+    "attestation_verifier": "github",
+    "signer_workflow": ".github/workflows/release-backend-images.yml"
   },
   "environments": {
     "staging": "staging-readonly",

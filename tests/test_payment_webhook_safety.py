@@ -25,6 +25,16 @@ def _stripe_signature(body: bytes, secret: str, timestamp: int) -> str:
     return f"t={timestamp},v1={digest}"
 
 
+def _walk_json(value):
+    if isinstance(value, dict):
+        for key, item in value.items():
+            yield key, item
+            yield from _walk_json(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _walk_json(item)
+
+
 async def test_payment_webhook_retains_only_minimized_operational_fields(monkeypatch):
     monkeypatch.setattr(settings, "stripe_webhook_secret", "whsec_minimized")
     event_id = f"evt_{uuid.uuid4().hex}"
@@ -83,13 +93,25 @@ async def test_payment_webhook_retains_only_minimized_operational_fields(monkeyp
         )
         assert inbox is not None
         assert receipt is not None
-        stored = json.dumps(inbox.payload, sort_keys=True)
-        assert "private-customer@example.com" not in stored
-        assert "Private Customer" not in stored
-        assert "123 Private Street" not in stored
-        assert "4242" not in stored
-        assert "secret-fingerprint" not in stored
-        assert "must-not-be-retained" not in stored
+        stored_fields = list(_walk_json(inbox.payload))
+        stored_keys = {key for key, _ in stored_fields}
+        stored_values = {value for _, value in stored_fields if isinstance(value, str)}
+        assert {
+            "customer_email",
+            "billing_details",
+            "payment_method",
+            "last4",
+            "fingerprint",
+            "private_note",
+        }.isdisjoint(stored_keys)
+        assert {
+            "private-customer@example.com",
+            "Private Customer",
+            "123 Private Street",
+            "4242",
+            "secret-fingerprint",
+            "must-not-be-retained",
+        }.isdisjoint(stored_values)
         assert inbox.payload["linkage"] == {
             "application_id": "application-safe-reference"
         }

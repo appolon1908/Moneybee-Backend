@@ -37,11 +37,26 @@ def _walk_json(value):
         yield None, value
 
 
+def _contains_sensitive_substring(stored_values, sensitive_values):
+    return any(
+        sensitive in stored
+        for stored in stored_values
+        for sensitive in sensitive_values
+    )
+
+
 def test_json_walk_includes_scalar_list_leaves():
     values = [value for _, value in _walk_json({"items": ["sensitive", 42]})]
 
     assert "sensitive" in values
     assert 42 in values
+
+
+def test_sensitive_value_detection_rejects_embedded_substrings():
+    assert _contains_sensitive_substring(
+        ["safe-prefix-4242-safe-suffix"],
+        {"4242"},
+    )
 
 
 async def test_payment_webhook_retains_only_minimized_operational_fields(monkeypatch):
@@ -104,7 +119,7 @@ async def test_payment_webhook_retains_only_minimized_operational_fields(monkeyp
         assert receipt is not None
         stored_fields = list(_walk_json(inbox.payload))
         stored_keys = {key for key, _ in stored_fields}
-        stored_values = {value for _, value in stored_fields if isinstance(value, str)}
+        stored_values = [value for _, value in stored_fields if isinstance(value, str)]
         assert {
             "customer_email",
             "billing_details",
@@ -113,14 +128,15 @@ async def test_payment_webhook_retains_only_minimized_operational_fields(monkeyp
             "fingerprint",
             "private_note",
         }.isdisjoint(stored_keys)
-        assert {
+        sensitive_values = {
             "private-customer@example.com",
             "Private Customer",
             "123 Private Street",
             "4242",
             "secret-fingerprint",
             "must-not-be-retained",
-        }.isdisjoint(stored_values)
+        }
+        assert not _contains_sensitive_substring(stored_values, sensitive_values)
         assert inbox.payload["linkage"] == {
             "application_id": "application-safe-reference"
         }

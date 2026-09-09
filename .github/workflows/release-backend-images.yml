@@ -51,37 +51,62 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" |
             docker login ghcr.io --username "${{ github.actor }}" --password-stdin
-      - name: Build and publish backend-owned images
+      - name: Build and publish API image
+        id: api
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: docker/Dockerfile.release
+          target: api
+          build-args: PYTHON_BASE_IMAGE=${{ env.PYTHON_BASE_IMAGE }}
+          tags: ghcr.io/appolon1908-hue/moneybee-api:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          provenance: mode=max
+          sbom: true
+          push: true
+      - name: Build and publish worker image
+        id: worker
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: docker/Dockerfile.release
+          target: worker
+          build-args: PYTHON_BASE_IMAGE=${{ env.PYTHON_BASE_IMAGE }}
+          tags: ghcr.io/appolon1908-hue/moneybee-worker:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          provenance: mode=max
+          sbom: true
+          push: true
+      - name: Build and publish migration image
+        id: migrate
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: docker/Dockerfile.release
+          target: migrate
+          build-args: PYTHON_BASE_IMAGE=${{ env.PYTHON_BASE_IMAGE }}
+          tags: ghcr.io/appolon1908-hue/moneybee-migrate:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          provenance: mode=max
+          sbom: true
+          push: true
+      - name: Record immutable build references
         id: build
         run: |
           set -euo pipefail
           mkdir -p dist
-          owner="${GITHUB_REPOSITORY_OWNER,,}"
-          build_one() {
-            target="$1"
-            name="$2"
-            image="ghcr.io/$owner/$name"
-            metadata="dist/$target.metadata.json"
-            docker buildx build \
-              --file docker/Dockerfile.release \
-              --target "$target" \
-              --build-arg "PYTHON_BASE_IMAGE=$PYTHON_BASE_IMAGE" \
-              --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
-              --label "org.opencontainers.image.revision=$GITHUB_SHA" \
-              --label "org.opencontainers.image.created=$(date -u +%FT%TZ)" \
-              --tag "$image:sha-$GITHUB_SHA" \
-              --provenance=mode=max \
-              --sbom=true \
-              --push \
-              --metadata-file "$metadata" \
-              .
-            digest="$(jq -r '."containerimage.digest"' "$metadata")"
-            printf '%s_digest=%s\n' "$target" "$digest" >>"$GITHUB_OUTPUT"
-            printf '%s_name=%s\n' "$target" "$image" >>"$GITHUB_OUTPUT"
-          }
-          build_one api moneybee-api
-          build_one worker moneybee-worker
-          build_one migrate moneybee-migrate
+          printf 'api_name=%s\n' 'ghcr.io/appolon1908-hue/moneybee-api' >>"$GITHUB_OUTPUT"
+          printf 'api_digest=%s\n' '${{ steps.api.outputs.digest }}' >>"$GITHUB_OUTPUT"
+          printf 'worker_name=%s\n' 'ghcr.io/appolon1908-hue/moneybee-worker' >>"$GITHUB_OUTPUT"
+          printf 'worker_digest=%s\n' '${{ steps.worker.outputs.digest }}' >>"$GITHUB_OUTPUT"
+          printf 'migrate_name=%s\n' 'ghcr.io/appolon1908-hue/moneybee-migrate' >>"$GITHUB_OUTPUT"
+          printf 'migrate_digest=%s\n' '${{ steps.migrate.outputs.digest }}' >>"$GITHUB_OUTPUT"
       - name: Scan API image and export SBOM
         run: |
           docker run --rm \
@@ -127,20 +152,20 @@ jobs:
       - name: Attest API image
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-name: ${{ steps.build.outputs.api_name }}
-          subject-digest: ${{ steps.build.outputs.api_digest }}
+          subject-name: ghcr.io/appolon1908-hue/moneybee-api
+          subject-digest: ${{ steps.api.outputs.digest }}
           push-to-registry: true
       - name: Attest worker image
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-name: ${{ steps.build.outputs.worker_name }}
-          subject-digest: ${{ steps.build.outputs.worker_digest }}
+          subject-name: ghcr.io/appolon1908-hue/moneybee-worker
+          subject-digest: ${{ steps.worker.outputs.digest }}
           push-to-registry: true
       - name: Attest migrate image
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-name: ${{ steps.build.outputs.migrate_name }}
-          subject-digest: ${{ steps.build.outputs.migrate_digest }}
+          subject-name: ghcr.io/appolon1908-hue/moneybee-migrate
+          subject-digest: ${{ steps.migrate.outputs.digest }}
           push-to-registry: true
       - name: Write backend release manifest
         env:

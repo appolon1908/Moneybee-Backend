@@ -70,7 +70,7 @@ jobs:
           set -euo pipefail
           backend_sha="${{ steps.locks.outputs.backend_sha }}"
           frontend_sha="${{ steps.locks.outputs.frontend_sha }}"
-          packet="moneybee-staging-${backend_sha:0:12}-${frontend_sha:0:12}"
+          packet="moneybee-staging-review"
           mkdir -p "$RUNNER_TEMP/$packet/backend" "$RUNNER_TEMP/$packet/frontend"
           cp -R backend/deploy backend/docker backend/ops "$RUNNER_TEMP/$packet/backend/"
           cp -R frontend/deploy "$RUNNER_TEMP/$packet/frontend/"

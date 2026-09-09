@@ -154,7 +154,15 @@ printf '%s\n' 'scheduled_jobs.end'
 
 printf '%s\n' 'dns.begin'
 for domain in moneybeeloan.com www.moneybeeloan.com app.moneybeeloan.com lenders.moneybeeloan.com admin.moneybeeloan.com api.moneybeeloan.com; do
-  printf 'dns.%s=%s\n' "$domain" "$(getent hosts "$domain" 2>/dev/null | awk '{print $1}' | xargs || true)"
+  printf 'dns.%s.local=%s\n' "$domain" "$(getent hosts "$domain" 2>/dev/null | awk '{print $1}' | xargs || true)"
+  # The host's own resolver can be split-horizon, cached, or locally
+  # overridden, so also resolve against a public external resolver to
+  # catch drift between what the server sees and what public clients see.
+  if command -v dig >/dev/null 2>&1; then
+    printf 'dns.%s.external_8_8_8_8=%s\n' "$domain" "$(dig +short +time=3 +tries=1 @8.8.8.8 "$domain" A 2>/dev/null | xargs || true)"
+  else
+    printf 'dns.%s.external_8_8_8_8=DIG_UNAVAILABLE\n' "$domain"
+  fi
 done
 printf '%s\n' 'dns.end'
 

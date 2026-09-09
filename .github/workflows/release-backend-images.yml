@@ -43,7 +43,18 @@ jobs:
       - name: Record OpenAPI and endpoint-catalog checksums
         run: |
           mkdir -p dist
-          sha256sum openapi.json | awk '{print $1}' >dist/openapi.sha256
+          # openapi.json is a frozen review baseline - verify_openapi_contract.py
+          # accepts 56 additional paths/schemas beyond it via docs/openapi/*-manifest.json
+          # digests, so hashing openapi.json alone would not identify the API this
+          # release actually serves. Regenerate the complete runtime document from
+          # app.openapi() instead and hash that.
+          python -c "
+          import json
+          from app.main import app
+          with open('dist/runtime-openapi.json', 'w') as f:
+              f.write(json.dumps(app.openapi(), indent=2, sort_keys=True) + '\n')
+          "
+          sha256sum dist/runtime-openapi.json | awk '{print $1}' >dist/openapi.sha256
           sha256sum docs/API_ENDPOINT_CATALOG.md | awk '{print $1}' >dist/endpoint-catalog.sha256
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
       - name: Verify immutable build inputs
@@ -159,6 +170,21 @@ jobs:
           subject-name: ${{ steps.build.outputs.migrate_name }}
           subject-digest: ${{ steps.build.outputs.migrate_digest }}
           push-to-registry: true
+      - name: Record provenance bundle digests
+        id: provenance
+        env:
+          API_BUNDLE_PATH: ${{ steps.attest_api.outputs.bundle-path }}
+          WORKER_BUNDLE_PATH: ${{ steps.attest_worker.outputs.bundle-path }}
+          MIGRATE_BUNDLE_PATH: ${{ steps.attest_migrate.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          for target in api worker migrate; do
+            path_var="${target^^}_BUNDLE_PATH"
+            src="${!path_var}"
+            dest="dist/$target.attestation.jsonl"
+            cp "$src" "$dest"
+            sha256sum "$dest" | awk -v t="$target" '{print t "_provenance_bundle_sha256=" $1}' >>"$GITHUB_OUTPUT"
+          done
       - name: Write backend release manifest
         env:
           API_NAME: ${{ steps.build.outputs.api_name }}
@@ -176,18 +202,22 @@ jobs:
           WORKER_ATTESTATION_URL: ${{ steps.attest_worker.outputs.attestation-url }}
           MIGRATE_ATTESTATION_ID: ${{ steps.attest_migrate.outputs.attestation-id }}
           MIGRATE_ATTESTATION_URL: ${{ steps.attest_migrate.outputs.attestation-url }}
+          API_PROVENANCE_BUNDLE_SHA256: ${{ steps.provenance.outputs.api_provenance_bundle_sha256 }}
+          WORKER_PROVENANCE_BUNDLE_SHA256: ${{ steps.provenance.outputs.worker_provenance_bundle_sha256 }}
+          MIGRATE_PROVENANCE_BUNDLE_SHA256: ${{ steps.provenance.outputs.migrate_provenance_bundle_sha256 }}
         run: |
           python - <<'PY'
           import json, os
           from datetime import UTC, datetime
 
-          def component(name_env, digest_env, sbom_env, attestation_id_env, attestation_url_env):
+          def component(name_env, digest_env, sbom_env, attestation_id_env, attestation_url_env, bundle_sha_env):
               return {
                   "image": os.environ[name_env] + "@" + os.environ[digest_env],
                   "sbom_sha256": os.environ[sbom_env],
                   "provenance": {
                       "attestation_id": os.environ.get(attestation_id_env) or None,
                       "attestation_url": os.environ.get(attestation_url_env) or None,
+                      "bundle_sha256": os.environ[bundle_sha_env],
                   },
               }
 
@@ -197,9 +227,9 @@ jobs:
               "source_sha": os.environ["GITHUB_SHA"],
               "created_at": datetime.now(UTC).isoformat(),
               "components": {
-                  "api": component("API_NAME", "API_DIGEST", "API_SBOM_SHA256", "API_ATTESTATION_ID", "API_ATTESTATION_URL"),
-                  "worker": component("WORKER_NAME", "WORKER_DIGEST", "WORKER_SBOM_SHA256", "WORKER_ATTESTATION_ID", "WORKER_ATTESTATION_URL"),
-                  "migrate": component("MIGRATE_NAME", "MIGRATE_DIGEST", "MIGRATE_SBOM_SHA256", "MIGRATE_ATTESTATION_ID", "MIGRATE_ATTESTATION_URL"),
+                  "api": component("API_NAME", "API_DIGEST", "API_SBOM_SHA256", "API_ATTESTATION_ID", "API_ATTESTATION_URL", "API_PROVENANCE_BUNDLE_SHA256"),
+                  "worker": component("WORKER_NAME", "WORKER_DIGEST", "WORKER_SBOM_SHA256", "WORKER_ATTESTATION_ID", "WORKER_ATTESTATION_URL", "WORKER_PROVENANCE_BUNDLE_SHA256"),
+                  "migrate": component("MIGRATE_NAME", "MIGRATE_DIGEST", "MIGRATE_SBOM_SHA256", "MIGRATE_ATTESTATION_ID", "MIGRATE_ATTESTATION_URL", "MIGRATE_PROVENANCE_BUNDLE_SHA256"),
               },
               "images": {
                   "api": os.environ["API_NAME"] + "@" + os.environ["API_DIGEST"],

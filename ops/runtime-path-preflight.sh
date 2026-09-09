@@ -88,6 +88,19 @@ fi
 printf 'effective_user=%s\n' "$(id -un 2>/dev/null || true)"
 printf 'effective_uid=%s\n' "$(id -u 2>/dev/null || true)"
 
+printf 'cpu.count=%s\n' "$(nproc 2>/dev/null || true)"
+printf 'loadavg=%s\n' "$(cat /proc/loadavg 2>/dev/null || true)"
+printf '%s\n' 'memory.begin'
+free -m 2>/dev/null || true
+printf '%s\n' 'memory.end'
+
+printf '%s\n' 'disk_usage.begin'
+df -Pk 2>/dev/null || true
+printf '%s\n' 'disk_usage.end'
+printf '%s\n' 'inode_usage.begin'
+df -Pi 2>/dev/null || true
+printf '%s\n' 'inode_usage.end'
+
 if command -v docker >/dev/null 2>&1; then
   printf 'docker.path=%s\n' "$(command -v docker)"
   printf 'docker.version=%s\n' "$(docker version --format '{{.Server.Version}}' 2>/dev/null || true)"
@@ -101,6 +114,9 @@ if command -v docker >/dev/null 2>&1; then
   printf '%s\n' 'docker.volumes.begin'
   docker volume ls --format '{{json .}}' 2>/dev/null || true
   printf '%s\n' 'docker.volumes.end'
+  printf '%s\n' 'docker.images.begin'
+  docker images --digests --format '{{json .}}' 2>/dev/null || true
+  printf '%s\n' 'docker.images.end'
 else
   printf 'docker.path=MISSING\n'
 fi
@@ -112,6 +128,58 @@ printf '%s\n' 'listeners.end'
 for service in docker caddy nginx apache2 postgresql redis-server; do
   printf 'service.%s=%s\n' "$service" "$(systemctl is-active "$service" 2>/dev/null || true)"
 done
+
+printf '%s\n' 'firewall.begin'
+if command -v nft >/dev/null 2>&1; then
+  nft list ruleset 2>/dev/null || true
+elif command -v iptables >/dev/null 2>&1; then
+  iptables -L -n -v 2>/dev/null || true
+fi
+if command -v ufw >/dev/null 2>&1; then
+  ufw status verbose 2>/dev/null || true
+fi
+printf '%s\n' 'firewall.end'
+
+printf '%s\n' 'scheduled_jobs.begin'
+systemctl list-timers --all --no-pager 2>/dev/null || true
+for cron_user in root moneybee; do
+  printf 'crontab.%s.begin\n' "$cron_user"
+  crontab -l -u "$cron_user" 2>/dev/null || true
+  printf 'crontab.%s.end\n' "$cron_user"
+done
+if [ -d /etc/cron.d ]; then
+  ls -la /etc/cron.d 2>/dev/null || true
+fi
+printf '%s\n' 'scheduled_jobs.end'
+
+printf '%s\n' 'dns.begin'
+for domain in moneybeeloan.com www.moneybeeloan.com app.moneybeeloan.com lenders.moneybeeloan.com admin.moneybeeloan.com api.moneybeeloan.com; do
+  printf 'dns.%s=%s\n' "$domain" "$(getent hosts "$domain" 2>/dev/null | awk '{print $1}' | xargs || true)"
+done
+printf '%s\n' 'dns.end'
+
+printf '%s\n' 'tls.begin'
+if command -v openssl >/dev/null 2>&1; then
+  for domain in moneybeeloan.com www.moneybeeloan.com app.moneybeeloan.com lenders.moneybeeloan.com admin.moneybeeloan.com api.moneybeeloan.com; do
+    cert_info="$(
+      { echo | timeout 5 openssl s_client -servername "$domain" -connect "$domain:443" 2>/dev/null \
+        | openssl x509 -noout -subject -issuer -dates 2>/dev/null; } | tr '\n' ';'
+    )"
+    printf 'tls.%s=%s\n' "$domain" "${cert_info:-UNREACHABLE}"
+  done
+fi
+printf '%s\n' 'tls.end'
+
+printf '%s\n' 'backup_evidence.begin'
+for candidate in /var/backups/moneybee /opt/moneybee/backups; do
+  if [ -e "$candidate" ]; then
+    printf 'backup_evidence.%s.exists=true\n' "$candidate"
+    find "$candidate" -maxdepth 2 -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -5 || true
+  else
+    printf 'backup_evidence.%s.exists=false\n' "$candidate"
+  fi
+done
+printf '%s\n' 'backup_evidence.end'
 
 path_report release_root "$1"
 path_report current_symlink "$2"

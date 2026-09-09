@@ -59,6 +59,21 @@ def test_sensitive_value_detection_rejects_embedded_substrings():
     )
 
 
+def test_sensitive_value_detection_includes_json_keys():
+    fields = list(_walk_json({"private-customer@example.com-field": "safe"}))
+    stored_strings = [
+        item
+        for key, value in fields
+        for item in (key, value)
+        if isinstance(item, str)
+    ]
+
+    assert _contains_sensitive_substring(
+        stored_strings,
+        {"private-customer@example.com"},
+    )
+
+
 async def test_payment_webhook_retains_only_minimized_operational_fields(monkeypatch):
     monkeypatch.setattr(settings, "stripe_webhook_secret", "whsec_minimized")
     event_id = f"evt_{uuid.uuid4().hex}"
@@ -119,7 +134,12 @@ async def test_payment_webhook_retains_only_minimized_operational_fields(monkeyp
         assert receipt is not None
         stored_fields = list(_walk_json(inbox.payload))
         stored_keys = {key for key, _ in stored_fields}
-        stored_values = [value for _, value in stored_fields if isinstance(value, str)]
+        stored_strings = [
+            item
+            for key, value in stored_fields
+            for item in (key, value)
+            if isinstance(item, str)
+        ]
         assert {
             "customer_email",
             "billing_details",
@@ -136,7 +156,7 @@ async def test_payment_webhook_retains_only_minimized_operational_fields(monkeyp
             "secret-fingerprint",
             "must-not-be-retained",
         }
-        assert not _contains_sensitive_substring(stored_values, sensitive_values)
+        assert not _contains_sensitive_substring(stored_strings, sensitive_values)
         assert inbox.payload["linkage"] == {
             "application_id": "application-safe-reference"
         }

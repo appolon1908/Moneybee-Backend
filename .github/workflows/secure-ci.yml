@@ -1,22 +1,12 @@
 name: secure-scaffold-ci
 
 on:
+  # These jobs are required branch checks. They must run for every pull
+  # request, including contract-only changes, and for every exact main head.
   pull_request:
-    paths:
-      - "app/**"
-      - "migrations/**"
-      - "scripts/**"
-      - "docs/codex/**"
-      - "docs/security/**"
-      - "docs/identity/**"
-      - "docker/**"
-      - "deploy/**"
-      - "ops/**"
-      - "pyproject.toml"
-      - "openapi.json"
-      - ".github/workflows/secure-ci.yml"
   push:
     branches:
+      - "main"
       - "ops/secure-staging-scaffold"
 
 permissions:

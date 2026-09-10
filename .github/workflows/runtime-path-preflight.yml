@@ -23,6 +23,8 @@ concurrency:
 
 jobs:
   preflight:
+    # RUNTIME_MUTATION_DISABLED=true
+    if: ${{ false }}
     environment: staging-preflight
     runs-on: ubuntu-latest
     timeout-minutes: 20

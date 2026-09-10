@@ -25,6 +25,55 @@ def _stripe_signature(body: bytes, secret: str, timestamp: int) -> str:
     return f"t={timestamp},v1={digest}"
 
 
+def _walk_json(value):
+    if isinstance(value, dict):
+        for key, item in value.items():
+            yield key, item
+            yield from _walk_json(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _walk_json(item)
+    else:
+        yield None, value
+
+
+def _contains_sensitive_substring(stored_values, sensitive_values):
+    return any(
+        sensitive in stored
+        for stored in stored_values
+        for sensitive in sensitive_values
+    )
+
+
+def test_json_walk_includes_scalar_list_leaves():
+    values = [value for _, value in _walk_json({"items": ["sensitive", 42]})]
+
+    assert "sensitive" in values
+    assert 42 in values
+
+
+def test_sensitive_value_detection_rejects_embedded_substrings():
+    assert _contains_sensitive_substring(
+        ["safe-prefix-4242-safe-suffix"],
+        {"4242"},
+    )
+
+
+def test_sensitive_value_detection_includes_json_keys():
+    fields = list(_walk_json({"private-customer@example.com-field": "safe"}))
+    stored_strings = [
+        item
+        for key, value in fields
+        for item in (key, value)
+        if isinstance(item, str)
+    ]
+
+    assert _contains_sensitive_substring(
+        stored_strings,
+        {"private-customer@example.com"},
+    )
+
+
 async def test_payment_webhook_retains_only_minimized_operational_fields(monkeypatch):
     monkeypatch.setattr(settings, "stripe_webhook_secret", "whsec_minimized")
     event_id = f"evt_{uuid.uuid4().hex}"
@@ -83,13 +132,31 @@ async def test_payment_webhook_retains_only_minimized_operational_fields(monkeyp
         )
         assert inbox is not None
         assert receipt is not None
-        stored = json.dumps(inbox.payload, sort_keys=True)
-        assert "private-customer@example.com" not in stored
-        assert "Private Customer" not in stored
-        assert "123 Private Street" not in stored
-        assert "4242" not in stored
-        assert "secret-fingerprint" not in stored
-        assert "must-not-be-retained" not in stored
+        stored_fields = list(_walk_json(inbox.payload))
+        stored_keys = {key for key, _ in stored_fields}
+        stored_strings = [
+            item
+            for key, value in stored_fields
+            for item in (key, value)
+            if isinstance(item, str)
+        ]
+        assert {
+            "customer_email",
+            "billing_details",
+            "payment_method",
+            "last4",
+            "fingerprint",
+            "private_note",
+        }.isdisjoint(stored_keys)
+        sensitive_values = {
+            "private-customer@example.com",
+            "Private Customer",
+            "123 Private Street",
+            "4242",
+            "secret-fingerprint",
+            "must-not-be-retained",
+        }
+        assert not _contains_sensitive_substring(stored_strings, sensitive_values)
         assert inbox.payload["linkage"] == {
             "application_id": "application-safe-reference"
         }

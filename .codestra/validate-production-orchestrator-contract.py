@@ -45,7 +45,7 @@ BACKEND_RELEASE_VALIDATOR_SECURITY_SHA256 = (
     "8d8f21260babfae5eaedbdd46472b1ec"
 )
 MONEYBEE_RELEASE_VALIDATOR_SECURITY_SHA256 = (
-    'd4d932371859ebbd5fc6592417d01bf6a606da7f5a8557e73d0f525b4909bd64'
+    '6f8aa83f2b97081ebbce437139ed75e39193c1349a33538f355fc21dff7d3aee'
 )
 EXPECTED_RELEASE_VALIDATOR_SECURITY_SHA256 = {
     "appolon1908-hue/Infustruction-repo": STANDARD_RELEASE_VALIDATOR_SECURITY_SHA256,
@@ -719,7 +719,7 @@ APPROVED_CONTROL_PLANE_WORKFLOW_SHA256: dict[str, dict[str, str]] = {
     },
     "appolon1908-hue/Moneybee-Backend": {
         ".github/workflows/ci.yml": (
-            '4a2f4f2e31fe0d2f40c3d94d63ff0b94ae474ab26e178b130339dbfcc43d82b5'
+            'f3f037284f146e0a4492d2135ca76c0b05195e29b13e28fee8b54eeead24359e'
         ),
         ".github/workflows/release-backend-images.yml": (
             "1f14d41e27212554bb750403597ce726"

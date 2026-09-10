@@ -213,8 +213,8 @@ EXPECTED_CHECK_WORKFLOW_SHA256 = {
     },
 }
 SHARED_PRODUCTION_VALIDATOR_SHA256 = (
-    "6006bbc7850ce7666de926b6cad2585b"
-    "83d2fce102104543b871530f11115f20"
+    "8536badfe8065290b9da700561dc26a1"
+    "918a05b08503fa229d73ba238f0f6d90"
 )
 KEYCLOAK_PRODUCTION_VALIDATOR_SHA256 = (
     "6006bbc7850ce7666de926b6cad2585b"
@@ -410,8 +410,7 @@ EXPECTED_REQUIRED_CHECK_SOURCE_CLOSURE_SHA256 = {
         "c27b77d05e43e4edb696db6aac677e60"
     ),
     "appolon1908-hue/Moneybee-Backend": (
-        "a283e388028892ced3ac8445893ec2fa"
-        "8bd7c7373418284f08106c82b765c31a"
+        '42fdd92c070ca2db9d177964b20fb9bba2e27368dc5823a8fa13d34a21969438'
     ),
     "appolon1908-hue/Telnexa-web": (
         "dbd17acc6862e74d9eb5ffbaf3a1f3f4"

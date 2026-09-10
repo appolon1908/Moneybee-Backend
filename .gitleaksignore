@@ -1,0 +1,7 @@
+# Reviewed SHA-256 of a read-only OpenAPI validator; not credential material.
+dfef9b5d475e65638bacbc953ea524b873f71d6d:.codestra/validate-production-orchestrator-contract.py:generic-api-key:389
+# Reviewed SHA-256 release-policy mappings; exact historical false positives.
+da1036ae4c45b118e72f3d196942e028c964dda7:.codestra/validate-production-orchestrator-contract.py:generic-api-key:483
+da1036ae4c45b118e72f3d196942e028c964dda7:.codestra/validate-production-orchestrator-contract.py:generic-api-key:617
+da1036ae4c45b118e72f3d196942e028c964dda7:.codestra/validate-production-orchestrator-contract.py:generic-api-key:620
+792e8c330b4b8342d4a7c3dabdf199e1d39541f1:.codestra/validate-production-orchestrator-contract.py:generic-api-key:786

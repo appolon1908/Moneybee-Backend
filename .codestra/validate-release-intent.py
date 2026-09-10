@@ -199,7 +199,7 @@ EXPECTED_CHECK_WORKFLOW_SHA256 = {
     },
     "appolon1908-hue/Moneybee-Backend": {
         ".github/workflows/production-orchestrator-contract.yml": ORCHESTRATOR_CONTRACT_WORKFLOW_SHA256,
-        ".github/workflows/ci.yml": "0bed241476483a0ac38e0fc8bb2b06a23b076645a6b0b355cf0420fcf4d2f451",
+        ".github/workflows/ci.yml": '4a2f4f2e31fe0d2f40c3d94d63ff0b94ae474ab26e178b130339dbfcc43d82b5',
         ".github/workflows/secure-ci.yml": "6ab4ebf30e47aee65ba3e1d7106ddd0c6feea546a57ebd289cf4fcfed9106e00",
     },
     "appolon1908-hue/Telnexa-web": {
@@ -213,7 +213,8 @@ EXPECTED_CHECK_WORKFLOW_SHA256 = {
     },
 }
 SHARED_PRODUCTION_VALIDATOR_SHA256 = (
-    'cbc37eca52e305592e36570833d5f74c09317170b8ace551cb3132e7831916dd'
+    "7748063e463ee9fe93cdadb075d87f64"
+    "1b7b5258c4e6dac1b9e2b534fad242ae"
 )
 KEYCLOAK_PRODUCTION_VALIDATOR_SHA256 = (
     "6006bbc7850ce7666de926b6cad2585b"
@@ -409,7 +410,7 @@ EXPECTED_REQUIRED_CHECK_SOURCE_CLOSURE_SHA256 = {
         "c27b77d05e43e4edb696db6aac677e60"
     ),
     "appolon1908-hue/Moneybee-Backend": (
-        'b34a5b2e7413b5d2fc40566661079318c5a43197dc6124ed577678f1ab885cba'
+        '9ed4e567bb0f8185d3d361339bc5106d8cfd16801ea7defb1329415412446e49'
     ),
     "appolon1908-hue/Telnexa-web": (
         "dbd17acc6862e74d9eb5ffbaf3a1f3f4"

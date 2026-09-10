@@ -720,8 +720,7 @@ APPROVED_CONTROL_PLANE_WORKFLOW_SHA256: dict[str, dict[str, str]] = {
     },
     "appolon1908-hue/Moneybee-Backend": {
         ".github/workflows/ci.yml": (
-            "0bed241476483a0ac38e0fc8bb2b06a2"
-            "3b076645a6b0b355cf0420fcf4d2f451"
+            '4a2f4f2e31fe0d2f40c3d94d63ff0b94ae474ab26e178b130339dbfcc43d82b5'
         ),
         ".github/workflows/release-backend-images.yml": (
             "1f14d41e27212554bb750403597ce726"

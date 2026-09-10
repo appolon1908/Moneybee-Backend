@@ -1,0 +1,6 @@
+paths:
+  .github/workflows/runtime-path-preflight.yml:
+    ignore:
+      # This SSH-backed preflight remains disabled until runtime mutation is
+      # explicitly authorized outside this repository-preparation task.
+      - 'constant expression "false" in condition'

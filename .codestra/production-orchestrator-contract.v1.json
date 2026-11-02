@@ -1,6 +1,6 @@
 {
   "schema_version": "codestra.production-orchestrator-contract.v1",
-  "repository": "appolon1908-hue/Moneybee-Backend",
+  "repository": "appolon1908/Moneybee-Backend",
   "repository_id": 1343760409,
   "default_branch": "main",
   "role": "application",

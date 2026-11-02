@@ -65,7 +65,7 @@ CATALOG_REPOSITORIES = {
     "appolon1908-hue/beyvra-frontend",
     "appolon1908-hue/scrapper",
     "appolon1908-hue/Breero.com",
-    "appolon1908-hue/Moneybee-Backend",
+    "appolon1908/Moneybee-Backend",
     "appolon1908-hue/Telnexa-web",
     CONTROLLER_REPOSITORY,
 }
@@ -135,7 +135,7 @@ EXPECTED_CHECK_WORKFLOWS = {
         "orchestrator-contract": ".github/workflows/production-orchestrator-contract.yml",
         "quality": ".github/workflows/quality.yml",
     },
-    "appolon1908-hue/Moneybee-Backend": {
+    "appolon1908/Moneybee-Backend": {
         "orchestrator-contract": ".github/workflows/production-orchestrator-contract.yml",
         "verify": ".github/workflows/ci.yml",
         "postgres-identity-tenancy": ".github/workflows/ci.yml",
@@ -197,7 +197,7 @@ EXPECTED_CHECK_WORKFLOW_SHA256 = {
         ".github/workflows/production-orchestrator-contract.yml": ORCHESTRATOR_CONTRACT_WORKFLOW_SHA256,
         ".github/workflows/quality.yml": "9e8367e853316594a325fbcb0f22f1e701c35c205b15e66a5228ae8b4ce10ce4",
     },
-    "appolon1908-hue/Moneybee-Backend": {
+    "appolon1908/Moneybee-Backend": {
         ".github/workflows/production-orchestrator-contract.yml": ORCHESTRATOR_CONTRACT_WORKFLOW_SHA256,
         ".github/workflows/ci.yml": 'f3f037284f146e0a4492d2135ca76c0b05195e29b13e28fee8b54eeead24359e',
         ".github/workflows/secure-ci.yml": "6ab4ebf30e47aee65ba3e1d7106ddd0c6feea546a57ebd289cf4fcfed9106e00",
@@ -215,6 +215,9 @@ EXPECTED_CHECK_WORKFLOW_SHA256 = {
 SHARED_PRODUCTION_VALIDATOR_SHA256 = (
     "5f47a14a4abe13d9c91d03cdb1d301b1"
     "0c043467430fddc2d9f2910156d39987"
+)
+MONEYBEE_PRODUCTION_VALIDATOR_SHA256 = (
+    "eeab3afb51231763a23fbe3b4f74f1ebaff6e0444cb50f39872b169abfbe3988"
 )
 KEYCLOAK_PRODUCTION_VALIDATOR_SHA256 = (
     "6006bbc7850ce7666de926b6cad2585b"
@@ -360,9 +363,9 @@ EXPECTED_CHECK_WORKFLOW_EXECUTABLE_SHA256 = {
             "scripts/ci/validate-breero-scope.sh": "f8ffb8a3953c56d7d6722938825bfb33fced802ba162f4cefd3d12be8ffb9a1e",
         },
     },
-    "appolon1908-hue/Moneybee-Backend": {
+    "appolon1908/Moneybee-Backend": {
         ".github/workflows/production-orchestrator-contract.yml": {
-            ".codestra/validate-production-orchestrator-contract.py": SHARED_PRODUCTION_VALIDATOR_SHA256,
+            ".codestra/validate-production-orchestrator-contract.py": MONEYBEE_PRODUCTION_VALIDATOR_SHA256,
         },
     },
     "appolon1908-hue/Telnexa-web": {
@@ -409,7 +412,7 @@ EXPECTED_REQUIRED_CHECK_SOURCE_CLOSURE_SHA256 = {
         "d59c04b6a621ab43c8e57c795880b050"
         "c27b77d05e43e4edb696db6aac677e60"
     ),
-    "appolon1908-hue/Moneybee-Backend": (
+    "appolon1908/Moneybee-Backend": (
         '1f6021dc4723107e5cfbb4ddccca8cab04dec3e824ec2dc01979100c9090ff53'
     ),
     "appolon1908-hue/Telnexa-web": (
@@ -2557,7 +2560,7 @@ def self_test() -> int:
         latest[("validate", 15368)] is None,
         "newest pending check-run regression failed",
     )
-    workflow_repository = "appolon1908-hue/Moneybee-Backend"
+    workflow_repository = "appolon1908/Moneybee-Backend"
     workflow_sha = "a" * 40
     workflow_checks = [
         {

@@ -26,6 +26,7 @@ RELEASE_VALIDATOR_PATH = ROOT / ".codestra/validate-release-intent.py"
 RELEASE_VALIDATOR_NON_SELF_REFERENTIAL_BINDINGS = frozenset(
     {
         "SHARED_PRODUCTION_VALIDATOR_SHA256",
+        "MONEYBEE_PRODUCTION_VALIDATOR_SHA256",
         "KEYCLOAK_PRODUCTION_VALIDATOR_SHA256",
         "MIDDLEWARE_PRODUCTION_VALIDATOR_SHA256",
         "BACKEND_PRODUCTION_VALIDATOR_SHA256",
@@ -45,7 +46,7 @@ BACKEND_RELEASE_VALIDATOR_SECURITY_SHA256 = (
     "8d8f21260babfae5eaedbdd46472b1ec"
 )
 MONEYBEE_RELEASE_VALIDATOR_SECURITY_SHA256 = (
-    '6f8aa83f2b97081ebbce437139ed75e39193c1349a33538f355fc21dff7d3aee'
+    '58fd9eebb19498cfdd5a94446b42dc95fb29d1c26581100b2d6d97398b1dc621'
 )
 EXPECTED_RELEASE_VALIDATOR_SECURITY_SHA256 = {
     "appolon1908-hue/Infustruction-repo": STANDARD_RELEASE_VALIDATOR_SECURITY_SHA256,
@@ -57,7 +58,7 @@ EXPECTED_RELEASE_VALIDATOR_SECURITY_SHA256 = {
     "appolon1908-hue/beyvra-frontend": STANDARD_RELEASE_VALIDATOR_SECURITY_SHA256,
     "appolon1908-hue/scrapper": STANDARD_RELEASE_VALIDATOR_SECURITY_SHA256,
     "appolon1908-hue/Breero.com": STANDARD_RELEASE_VALIDATOR_SECURITY_SHA256,
-    "appolon1908-hue/Moneybee-Backend": MONEYBEE_RELEASE_VALIDATOR_SECURITY_SHA256,
+    "appolon1908/Moneybee-Backend": MONEYBEE_RELEASE_VALIDATOR_SECURITY_SHA256,
     "appolon1908-hue/Telnexa-web": STANDARD_RELEASE_VALIDATOR_SECURITY_SHA256,
 }
 MANUAL_RELEASE_INTENT_SHA256 = (
@@ -365,7 +366,7 @@ EXPECTED_IDENTITIES: dict[str, tuple[int, str, bool, bool]] = {
     "appolon1908-hue/beyvra-frontend": (1320246591, "application", True, False),
     "appolon1908-hue/scrapper": (1329513537, "migration-evidence", False, False),
     "appolon1908-hue/Breero.com": (1331354808, "application", True, False),
-    "appolon1908-hue/Moneybee-Backend": (1343760409, "application", True, False),
+    "appolon1908/Moneybee-Backend": (1343760409, "application", True, False),
     "appolon1908-hue/Telnexa-web": (1346958528, "application", True, False),
     "appolon1908-hue/codestra-production-platform": (1314230781, "controller", False, False),
 }
@@ -432,7 +433,7 @@ EXPECTED_ARTIFACT_POLICIES: dict[
         "github",
         "github",
     ),
-    "appolon1908-hue/Moneybee-Backend": (
+    "appolon1908/Moneybee-Backend": (
         (
             "ghcr.io/appolon1908-hue/moneybee-api",
             "ghcr.io/appolon1908-hue/moneybee-worker",
@@ -611,7 +612,7 @@ APPROVED_COMPLEX_SCRIPT_SHA256: dict[str, dict[str, str]] = {
         "scripts/ci/test-validate-breero-scope.sh": "ea29de36868e28ff82e3ec151f896aed388d2421f5907151c4c13480dae20bf8",
         "scripts/ci/validate-breero-scope.sh": "f8ffb8a3953c56d7d6722938825bfb33fced802ba162f4cefd3d12be8ffb9a1e",
     },
-    "appolon1908-hue/Moneybee-Backend": {
+    "appolon1908/Moneybee-Backend": {
         "scripts/generate_endpoint_catalog.py": (
             "174a22ef99c72a9432ede92e1c5117e7"
             "092aaf2f9e6dbf40af79087503c30f0a"
@@ -717,7 +718,7 @@ APPROVED_CONTROL_PLANE_WORKFLOW_SHA256: dict[str, dict[str, str]] = {
     "appolon1908-hue/Breero.com": {
         ".github/workflows/quality.yml": "9e8367e853316594a325fbcb0f22f1e701c35c205b15e66a5228ae8b4ce10ce4",
     },
-    "appolon1908-hue/Moneybee-Backend": {
+    "appolon1908/Moneybee-Backend": {
         ".github/workflows/ci.yml": (
             'f3f037284f146e0a4492d2135ca76c0b05195e29b13e28fee8b54eeead24359e'
         ),

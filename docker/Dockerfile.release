@@ -42,6 +42,10 @@ RUN /opt/venv/bin/python -m pip install \
         --no-deps \
         /wheels/*.whl \
     && /opt/venv/bin/python -m pip check \
+    && /opt/venv/bin/python -m pip uninstall --yes pip \
+    && /usr/local/bin/python -m pip uninstall --yes pip \
+    && /usr/local/bin/python -I -c "import importlib.util, pathlib, shutil, sysconfig; bootstrap = pathlib.Path(sysconfig.get_path('stdlib')) / 'ensurepip'; shutil.rmtree(bootstrap); assert importlib.util.find_spec('pip') is None; assert not bootstrap.exists()" \
+    && /opt/venv/bin/python -I -c "import importlib.util; assert importlib.util.find_spec('pip') is None; assert importlib.util.find_spec('ensurepip') is None" \
     && rm -rf /wheels
 
 COPY alembic.ini ./alembic.ini

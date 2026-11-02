@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import uuid
-from decimal import Decimal
 from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field
+
+from app.decimal_contract import ContractDecimal
 
 
 class MarketingAttribution(BaseModel):
@@ -67,7 +68,7 @@ class LenderPartnerInquiryInput(PublicIntakeCommon):
     website: str | None = Field(default=None, max_length=500)
     product_types: list[str] = Field(default_factory=list, max_length=30)
     states: list[str] = Field(default_factory=list, max_length=60)
-    annual_originations: Decimal | None = Field(default=None, ge=0)
+    annual_originations: ContractDecimal | None = Field(default=None, ge=0)
     message: str | None = Field(default=None, max_length=5000)
 
 
@@ -90,8 +91,8 @@ class DealSubmissionInquiryInput(PublicIntakeCommon):
     email: EmailStr
     phone: str = Field(min_length=8, max_length=40)
     business_name: str = Field(min_length=2, max_length=240)
-    requested_amount: Decimal = Field(ge=1000, le=10_000_000)
-    monthly_revenue: Decimal = Field(ge=0)
+    requested_amount: ContractDecimal = Field(ge=1000, le=10_000_000)
+    monthly_revenue: ContractDecimal = Field(ge=0)
     time_in_business_months: int = Field(ge=0)
     industry: str | None = Field(default=None, max_length=120)
     state: str | None = Field(default=None, min_length=2, max_length=2)

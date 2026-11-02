@@ -1,8 +1,9 @@
 from datetime import datetime
-from decimal import Decimal
 import uuid
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from app.decimal_contract import ContractDecimal
 
 from app.schemas import AdverseActionNoticeRead, CommercialFinancingDisclosureRead
 
@@ -46,7 +47,7 @@ class CommissionTaxRecordOperatorRead(BaseModel):
     recipient_reference: str
     recipient_name: str | None
     tax_year: int
-    total_amount: Decimal
+    total_amount: ContractDecimal
     commission_count: int
     requires_1099: bool
     tin_present: bool

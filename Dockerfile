@@ -14,6 +14,9 @@ COPY alembic.ini ./alembic.ini
 COPY migrations ./migrations
 RUN pip install --no-cache-dir --upgrade pip "setuptools>=78.1.1" "msgpack>=1.2.1" \
     && pip install --no-cache-dir . \
+    && python -m pip check \
+    && python -m pip uninstall --yes pip \
+    && python -I -c "import importlib.util, pathlib, shutil, sysconfig; bootstrap = pathlib.Path(sysconfig.get_path('stdlib')) / 'ensurepip'; shutil.rmtree(bootstrap); assert importlib.util.find_spec('pip') is None; assert not bootstrap.exists()" \
     && apt-get purge -y --auto-remove git \
     && rm -rf /var/lib/apt/lists/*
 

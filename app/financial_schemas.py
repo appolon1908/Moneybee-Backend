@@ -4,6 +4,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from app.decimal_contract import ContractDecimal
+
 
 def _currency(value: str) -> str:
     value = value.strip().upper()
@@ -77,7 +79,7 @@ class AccountingPeriodRead(BaseModel):
 class PostingInput(StrictCommand):
     account_id: uuid.UUID
     side: str
-    amount: Decimal = Field(gt=0, max_digits=20, decimal_places=2)
+    amount: ContractDecimal = Field(gt=0, max_digits=20, decimal_places=2)
     application_id: uuid.UUID | None = None
     funding_id: uuid.UUID | None = None
     commission_id: uuid.UUID | None = None
@@ -137,7 +139,7 @@ class PostingRead(BaseModel):
     journal_entry_id: uuid.UUID
     account_id: uuid.UUID
     side: str
-    amount: Decimal
+    amount: ContractDecimal
     currency: str
     application_id: uuid.UUID | None
     funding_id: uuid.UUID | None
@@ -170,16 +172,16 @@ class TrialBalanceLine(BaseModel):
     code: str
     name: str
     account_type: str
-    debit_total: Decimal
-    credit_total: Decimal
-    balance: Decimal
+    debit_total: ContractDecimal
+    credit_total: ContractDecimal
+    balance: ContractDecimal
 
 
 class TrialBalanceRead(BaseModel):
     organization_id: uuid.UUID
     currency: str
     as_of: datetime
-    debit_total: Decimal
-    credit_total: Decimal
+    debit_total: ContractDecimal
+    credit_total: ContractDecimal
     balanced: bool
     accounts: list[TrialBalanceLine]

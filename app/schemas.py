@@ -1,9 +1,10 @@
 import uuid
 from datetime import datetime
-from decimal import Decimal
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+
+from app.decimal_contract import ContractDecimal
 
 
 class Attribution(BaseModel):
@@ -27,11 +28,11 @@ class ConsentInput(BaseModel):
 
 
 class PrequalificationInput(BaseModel):
-    funding_amount: Decimal = Field(ge=1000, le=10_000_000)
+    funding_amount: ContractDecimal = Field(ge=1000, le=10_000_000)
     currency: Literal["USD"] = "USD"
     use_of_funds: str
     time_in_business_months: int = Field(ge=0)
-    monthly_revenue: Decimal = Field(ge=0)
+    monthly_revenue: ContractDecimal = Field(ge=0)
     business_name: str = Field(min_length=2, max_length=240)
     first_name: str
     last_name: str
@@ -56,8 +57,8 @@ class ApplicationCreate(BaseModel):
 
 
 class ApplicationUpdate(BaseModel):
-    requested_amount: Decimal | None = Field(default=None, ge=1000)
-    monthly_revenue: Decimal | None = Field(default=None, ge=0)
+    requested_amount: ContractDecimal | None = Field(default=None, ge=1000)
+    monthly_revenue: ContractDecimal | None = Field(default=None, ge=0)
     time_in_business_months: int | None = Field(default=None, ge=0)
     industry: str | None = None
     state: str | None = Field(default=None, min_length=2, max_length=2)
@@ -70,8 +71,8 @@ class ApplicationRead(BaseModel):
     lead_id: uuid.UUID
     borrower_subject: str | None
     borrower_organization_id: uuid.UUID | None
-    requested_amount: Decimal
-    monthly_revenue: Decimal
+    requested_amount: ContractDecimal
+    monthly_revenue: ContractDecimal
     time_in_business_months: int
     industry: str | None
     state: str | None
@@ -121,10 +122,10 @@ class BusinessRead(BusinessInput):
 
 
 class FinancialProfileInput(BaseModel):
-    annual_revenue: Decimal | None = Field(default=None, ge=0)
-    monthly_revenue: Decimal | None = Field(default=None, ge=0)
-    monthly_expenses: Decimal | None = Field(default=None, ge=0)
-    existing_debt: Decimal | None = Field(default=None, ge=0)
+    annual_revenue: ContractDecimal | None = Field(default=None, ge=0)
+    monthly_revenue: ContractDecimal | None = Field(default=None, ge=0)
+    monthly_expenses: ContractDecimal | None = Field(default=None, ge=0)
+    existing_debt: ContractDecimal | None = Field(default=None, ge=0)
     existing_positions: int = Field(default=0, ge=0)
 
 
@@ -137,7 +138,7 @@ class FinancialProfileRead(FinancialProfileInput):
 class OwnerInput(BaseModel):
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
-    ownership_percent: Decimal = Field(gt=0, le=100)
+    ownership_percent: ContractDecimal = Field(gt=0, le=100)
     title: str | None = Field(default=None, max_length=100)
     email: EmailStr | None = None
     phone: str | None = Field(default=None, max_length=32)
@@ -154,9 +155,9 @@ class ProgramInput(BaseModel):
     lender_id: uuid.UUID
     name: str
     product_type: str
-    min_amount: Decimal
-    max_amount: Decimal
-    minimum_monthly_revenue: Decimal
+    min_amount: ContractDecimal
+    max_amount: ContractDecimal
+    minimum_monthly_revenue: ContractDecimal
     minimum_time_in_business_months: int
     states: list[str] = Field(default_factory=list)
     excluded_industries: list[str] = Field(default_factory=list)
@@ -185,14 +186,14 @@ class OfferInput(BaseModel):
     lender_id: uuid.UUID
     program_id: uuid.UUID | None = None
     product_type: str
-    amount: Decimal = Field(gt=0)
+    amount: ContractDecimal = Field(gt=0)
     term_months: int = Field(gt=0)
     payment_frequency: str
-    payment_amount: Decimal = Field(gt=0)
-    apr: Decimal | None = None
-    factor_rate: Decimal | None = None
-    origination_fee: Decimal = 0
-    total_repayment: Decimal | None = None
+    payment_amount: ContractDecimal = Field(gt=0)
+    apr: ContractDecimal | None = None
+    factor_rate: ContractDecimal | None = None
+    origination_fee: ContractDecimal = 0
+    total_repayment: ContractDecimal | None = None
     prepayment_terms: str | None = Field(default=None, max_length=10_000)
     personal_guarantee_required: bool = False
     collateral_description: str | None = Field(default=None, max_length=10_000)
@@ -309,8 +310,8 @@ class FundingRead(BaseModel):
     application_id: uuid.UUID
     offer_id: uuid.UUID
     status: str
-    approved_amount: Decimal | None
-    funded_amount: Decimal | None
+    approved_amount: ContractDecimal | None
+    funded_amount: ContractDecimal | None
     provider_reference: str | None
     funds_sent_at: datetime | None
     funding_confirmed_at: datetime | None
@@ -326,17 +327,17 @@ class FundingFundsSentInput(BaseModel):
 
 
 class FundingConfirmInput(BaseModel):
-    funded_amount: Decimal = Field(gt=0)
+    funded_amount: ContractDecimal = Field(gt=0)
     commission_rate_bps: int = Field(ge=0, le=10_000)
-    commission_expected_amount: Decimal | None = Field(default=None, gt=0)
+    commission_expected_amount: ContractDecimal | None = Field(default=None, gt=0)
 
 
 class CommissionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     funding_id: uuid.UUID
-    expected_amount: Decimal
-    received_amount: Decimal
+    expected_amount: ContractDecimal
+    received_amount: ContractDecimal
     status: str
     created_at: datetime
 
@@ -348,7 +349,7 @@ class RenewalRead(BaseModel):
     application_id: uuid.UUID
     eligible_from: datetime
     eligibility_status: str
-    estimated_amount: Decimal | None
+    estimated_amount: ContractDecimal | None
     status: str
     created_at: datetime
 
@@ -439,8 +440,8 @@ class CommissionSplitRead(BaseModel):
     commission_id: uuid.UUID
     recipient_type: str
     recipient_reference: str
-    percentage: Decimal | None
-    amount: Decimal
+    percentage: ContractDecimal | None
+    amount: ContractDecimal
     status: str
     created_at: datetime
 
@@ -448,8 +449,8 @@ class CommissionSplitRead(BaseModel):
 class CommissionSplitInput(BaseModel):
     recipient_type: str = Field(min_length=1, max_length=50)
     recipient_reference: str = Field(min_length=1, max_length=255)
-    percentage: Decimal | None = Field(default=None, ge=0, le=100)
-    amount: Decimal = Field(gt=0)
+    percentage: ContractDecimal | None = Field(default=None, ge=0, le=100)
+    amount: ContractDecimal = Field(gt=0)
 
 
 class CommissionSplitPaymentInput(BaseModel):
@@ -458,13 +459,13 @@ class CommissionSplitPaymentInput(BaseModel):
 
 
 class CommissionReceiptInput(BaseModel):
-    amount: Decimal = Field(gt=0)
+    amount: ContractDecimal = Field(gt=0)
     reference: str | None = Field(default=None, max_length=255)
 
 
 class CommissionAdjustmentInput(BaseModel):
     adjustment_type: str = Field(min_length=2, max_length=50)
-    amount: Decimal
+    amount: ContractDecimal
     reason: str = Field(min_length=5, max_length=10_000)
 
 
@@ -473,7 +474,7 @@ class CommissionAdjustmentRead(BaseModel):
     id: uuid.UUID
     commission_id: uuid.UUID
     adjustment_type: str
-    amount: Decimal
+    amount: ContractDecimal
     reason: str
     created_by: str
     created_at: datetime
@@ -524,8 +525,8 @@ class BankAccountRead(BaseModel):
     mask: str | None
     account_type: str | None
     subtype: str | None
-    current_balance: Decimal | None
-    available_balance: Decimal | None
+    current_balance: ContractDecimal | None
+    available_balance: ContractDecimal | None
     currency: str | None
     active: bool
     updated_at: datetime
@@ -536,13 +537,13 @@ class BankAnalysisRead(BaseModel):
     id: uuid.UUID
     application_id: uuid.UUID
     analysis_version: int
-    average_monthly_deposits: Decimal | None
-    average_daily_balance: Decimal | None
+    average_monthly_deposits: ContractDecimal | None
+    average_daily_balance: ContractDecimal | None
     negative_balance_days_90d: int
     nsf_count_90d: int
     deposit_count_90d: int
-    largest_deposit_90d: Decimal | None
-    existing_payment_obligations: Decimal | None
+    largest_deposit_90d: ContractDecimal | None
+    existing_payment_obligations: ContractDecimal | None
     revenue_trend: str | None
     cash_flow_trend: str | None
     risk_flags: list
@@ -577,11 +578,11 @@ class CommercialFinancingDisclosureRead(BaseModel):
     offer_id: uuid.UUID
     application_id: uuid.UUID
     jurisdiction: str | None
-    amount_financed: Decimal
-    finance_charge: Decimal
-    total_repayment_amount: Decimal
-    estimated_apr: Decimal | None
-    payment_amount: Decimal
+    amount_financed: ContractDecimal
+    finance_charge: ContractDecimal
+    total_repayment_amount: ContractDecimal
+    estimated_apr: ContractDecimal | None
+    payment_amount: ContractDecimal
     payment_frequency: str
     term_months: int
     prepayment_policy: str
@@ -598,7 +599,7 @@ class CommissionTaxRecordRead(BaseModel):
     recipient_reference: str
     recipient_name: str | None
     tax_year: int
-    total_amount: Decimal
+    total_amount: ContractDecimal
     commission_count: int
     requires_1099: bool
     filed_at: datetime | None

@@ -2,28 +2,29 @@ from functools import lru_cache
 import json
 from typing import Literal
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from .secret_files import apply_secret_files
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", hide_input_in_errors=True)
 
     app_env: Literal["local", "test", "dev", "staging", "production"] = "local"
-    database_url: str = "sqlite+aiosqlite:///./moneybee.db"
-    redis_url: str = "redis://localhost:6379/0"
+    database_url: str = Field(default="sqlite+aiosqlite:///./moneybee.db", repr=False)
+    database_url_file: str = ""
+    redis_url: str = Field(default="redis://localhost:6379/0", repr=False)
+    redis_url_file: str = ""
     auto_create_schema: bool = True
     local_auth_bypass: bool = True
     local_identity_enforcement: bool = False
     cors_origins_csv: str = (
-        "http://localhost:5173,http://localhost:5174,"
-        "http://localhost:5175,http://localhost:5176"
+        "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176"
     )
     oidc_issuer: str = "https://auth.codestra.co/realms/codestra"
     oidc_audience: str = "moneybee-api"
-    oidc_jwks_url: str = (
-        "https://auth.codestra.co/realms/codestra/protocol/openid-connect/certs"
-    )
+    oidc_jwks_url: str = "https://auth.codestra.co/realms/codestra/protocol/openid-connect/certs"
     oidc_algorithms_csv: str = "RS256"
     borrower_oidc_client_ids_csv: str = "moneybee-borrower"
     lender_oidc_client_ids_csv: str = "moneybee-lender"
@@ -32,21 +33,23 @@ class Settings(BaseSettings):
     codestra_middleware_base_url: str | None = None
     codestra_middleware_token_url: str | None = None
     codestra_middleware_client_id: str | None = None
-    codestra_middleware_client_secret: str | None = None
+    codestra_middleware_client_secret: str | None = Field(default=None, repr=False)
+    codestra_middleware_client_secret_file: str = ""
     middleware_provider: Literal["disabled", "codestra"] = "disabled"
     codestra_middleware_event_path: str = "/v1/events"
     codestra_middleware_scope: str | None = None
-    codestra_middleware_webhook_secret: str | None = None
+    codestra_middleware_webhook_secret: str | None = Field(default=None, repr=False)
+    codestra_middleware_webhook_secret_file: str = ""
     codestra_middleware_webhook_tolerance_seconds: int = 300
     codestra_sdk_enabled: bool = False
     codestra_sdk_capabilities_csv: str = ""
-    provider_webhook_allowlist_csv: str = (
-        "lender,docusign,sendgrid,twilio,odoo,n8n,experian"
-    )
-    provider_webhook_secrets_json: str = "{}"
+    provider_webhook_allowlist_csv: str = "lender,docusign,sendgrid,twilio,odoo,n8n,experian"
+    provider_webhook_secrets_json: str = Field(default="{}", repr=False)
+    provider_webhook_secrets_json_file: str = ""
     provider_webhook_tolerance_seconds: int = 300
 
-    field_encryption_keys_json: str = "{}"
+    field_encryption_keys_json: str = Field(default="{}", repr=False)
+    field_encryption_keys_json_file: str = ""
     field_encryption_active_key_version: str | None = None
     provider_timeout_seconds: float = 30.0
     live_writes: bool = False
@@ -76,7 +79,8 @@ class Settings(BaseSettings):
     bank_provider: Literal["disabled", "plaid"] = "disabled"
     plaid_base_url: str = "https://sandbox.plaid.com"
     plaid_client_id: str | None = None
-    plaid_secret: str | None = None
+    plaid_secret: str | None = Field(default=None, repr=False)
+    plaid_secret_file: str = ""
     plaid_client_name: str = "MoneyBeeLoans"
     plaid_products_csv: str = "transactions,auth"
     plaid_country_codes_csv: str = "US"
@@ -85,33 +89,40 @@ class Settings(BaseSettings):
 
     crm_provider: Literal["disabled", "generic_http", "odoo"] = "disabled"
     crm_base_url: str | None = None
-    crm_api_key: str | None = None
+    crm_api_key: str | None = Field(default=None, repr=False)
+    crm_api_key_file: str = ""
     crm_event_path: str = "/moneybee/events"
 
     odoo_base_url: str | None = None
     odoo_database: str | None = None
     odoo_api_mode: Literal["auto", "json2", "xmlrpc"] = "auto"
     odoo_username: str | None = None
-    odoo_api_key: str | None = None
+    odoo_api_key: str | None = Field(default=None, repr=False)
+    odoo_api_key_file: str = ""
 
     kyb_provider: Literal["disabled", "generic_http", "middesk"] = "disabled"
     kyb_base_url: str | None = None
-    kyb_api_key: str | None = None
+    kyb_api_key: str | None = Field(default=None, repr=False)
+    kyb_api_key_file: str = ""
     kyb_verify_path: str = "/v1/business-verifications"
 
     middesk_base_url: str = "https://api-sandbox.middesk.com"
-    middesk_api_key: str | None = None
-    middesk_webhook_secret: str | None = None
+    middesk_api_key: str | None = Field(default=None, repr=False)
+    middesk_api_key_file: str = ""
+    middesk_webhook_secret: str | None = Field(default=None, repr=False)
+    middesk_webhook_secret_file: str = ""
 
     credit_provider: Literal["disabled", "generic_http", "experian"] = "disabled"
     credit_base_url: str | None = None
-    credit_api_key: str | None = None
+    credit_api_key: str | None = Field(default=None, repr=False)
+    credit_api_key_file: str = ""
     credit_request_path: str = "/v1/credit-requests"
 
     experian_base_url: str | None = None
     experian_token_url: str | None = None
     experian_client_id: str | None = None
-    experian_client_secret: str | None = None
+    experian_client_secret: str | None = Field(default=None, repr=False)
+    experian_client_secret_file: str = ""
     experian_scope: str | None = None
     experian_token_auth_style: Literal["basic", "body"] = "basic"
     experian_business_search_path: str | None = None
@@ -126,7 +137,8 @@ class Settings(BaseSettings):
 
     lender_provider: Literal["disabled", "generic_http"] = "disabled"
     lender_base_url: str | None = None
-    lender_api_key: str | None = None
+    lender_api_key: str | None = Field(default=None, repr=False)
+    lender_api_key_file: str = ""
     lender_submission_path: str = "/v1/submissions"
 
     esign_provider: Literal["disabled", "docusign"] = "disabled"
@@ -138,21 +150,25 @@ class Settings(BaseSettings):
 
     email_provider: Literal["disabled", "sendgrid"] = "disabled"
     sendgrid_api_base_url: str = "https://api.sendgrid.com"
-    sendgrid_api_key: str | None = None
+    sendgrid_api_key: str | None = Field(default=None, repr=False)
+    sendgrid_api_key_file: str = ""
     sendgrid_from_email: str | None = None
     sendgrid_from_name: str = "MoneyBeeLoans"
 
     sms_provider: Literal["disabled", "twilio"] = "disabled"
     twilio_account_sid: str | None = None
-    twilio_auth_token: str | None = None
+    twilio_auth_token: str | None = Field(default=None, repr=False)
+    twilio_auth_token_file: str = ""
     twilio_from_number: str | None = None
 
     object_storage_mode: Literal["disabled", "s3"] = "disabled"
     object_storage_endpoint: str | None = None
     object_storage_region: str | None = None
     object_storage_bucket: str | None = None
-    object_storage_access_key: str | None = None
-    object_storage_secret_key: str | None = None
+    object_storage_access_key: str | None = Field(default=None, repr=False)
+    object_storage_access_key_file: str = ""
+    object_storage_secret_key: str | None = Field(default=None, repr=False)
+    object_storage_secret_key_file: str = ""
 
     malware_scan_provider: Literal["disabled", "clamav"] = "disabled"
     clamav_host: str | None = None
@@ -161,16 +177,50 @@ class Settings(BaseSettings):
 
     payment_provider: Literal["disabled", "stripe", "paypal"] = "disabled"
     stripe_api_base_url: str = "https://api.stripe.com"
-    stripe_secret_key: str | None = None
-    stripe_webhook_secret: str | None = None
+    stripe_secret_key: str | None = Field(default=None, repr=False)
+    stripe_secret_key_file: str = ""
+    stripe_webhook_secret: str | None = Field(default=None, repr=False)
+    stripe_webhook_secret_file: str = ""
     paypal_api_base_url: str = "https://api-m.sandbox.paypal.com"
     paypal_client_id: str | None = None
-    paypal_client_secret: str | None = None
+    paypal_client_secret: str | None = Field(default=None, repr=False)
+    paypal_client_secret_file: str = ""
     paypal_webhook_id: str | None = None
 
     @staticmethod
     def _csv_set(value: str) -> frozenset[str]:
         return frozenset(item.strip() for item in value.split(",") if item.strip())
+
+    @model_validator(mode="after")
+    def load_secret_files(self) -> "Settings":
+        apply_secret_files(
+            self,
+            (
+                "database_url",
+                "redis_url",
+                "codestra_middleware_client_secret",
+                "codestra_middleware_webhook_secret",
+                "provider_webhook_secrets_json",
+                "field_encryption_keys_json",
+                "plaid_secret",
+                "crm_api_key",
+                "odoo_api_key",
+                "kyb_api_key",
+                "middesk_api_key",
+                "middesk_webhook_secret",
+                "credit_api_key",
+                "experian_client_secret",
+                "lender_api_key",
+                "sendgrid_api_key",
+                "twilio_auth_token",
+                "object_storage_access_key",
+                "object_storage_secret_key",
+                "stripe_secret_key",
+                "stripe_webhook_secret",
+                "paypal_client_secret",
+            ),
+        )
+        return self
 
     @property
     def cors_origins(self) -> list[str]:
@@ -209,8 +259,7 @@ class Settings(BaseSettings):
         except json.JSONDecodeError as exc:
             raise ValueError("PROVIDER_WEBHOOK_SECRETS_JSON must be valid JSON") from exc
         if not isinstance(value, dict) or not all(
-            isinstance(key, str) and isinstance(secret, str)
-            for key, secret in value.items()
+            isinstance(key, str) and isinstance(secret, str) for key, secret in value.items()
         ):
             raise ValueError("PROVIDER_WEBHOOK_SECRETS_JSON must be a string map")
         return {key.lower(): secret for key, secret in value.items() if secret}
@@ -222,35 +271,22 @@ class Settings(BaseSettings):
         except json.JSONDecodeError as exc:
             raise ValueError("FIELD_ENCRYPTION_KEYS_JSON must be valid JSON") from exc
         if not isinstance(value, dict) or not all(
-            isinstance(key, str) and isinstance(secret, str)
-            for key, secret in value.items()
+            isinstance(key, str) and isinstance(secret, str) for key, secret in value.items()
         ):
             raise ValueError("FIELD_ENCRYPTION_KEYS_JSON must be a string map")
         return {key: secret for key, secret in value.items() if secret}
 
     @property
     def oidc_algorithms(self) -> list[str]:
-        return [
-            item.strip()
-            for item in self.oidc_algorithms_csv.split(",")
-            if item.strip()
-        ]
+        return [item.strip() for item in self.oidc_algorithms_csv.split(",") if item.strip()]
 
     @property
     def plaid_products(self) -> list[str]:
-        return [
-            item.strip()
-            for item in self.plaid_products_csv.split(",")
-            if item.strip()
-        ]
+        return [item.strip() for item in self.plaid_products_csv.split(",") if item.strip()]
 
     @property
     def plaid_country_codes(self) -> list[str]:
-        return [
-            item.strip()
-            for item in self.plaid_country_codes_csv.split(",")
-            if item.strip()
-        ]
+        return [item.strip() for item in self.plaid_country_codes_csv.split(",") if item.strip()]
 
     @model_validator(mode="after")
     def secure_environment(self) -> "Settings":
@@ -264,9 +300,7 @@ class Settings(BaseSettings):
         pairs = (("borrower", "lender"), ("borrower", "admin"), ("lender", "admin"))
         for left, right in pairs:
             if portal_clients[left] & portal_clients[right]:
-                raise ValueError(
-                    "Borrower, lender, and admin OIDC client IDs must be disjoint"
-                )
+                raise ValueError("Borrower, lender, and admin OIDC client IDs must be disjoint")
 
         if self.app_env in {"staging", "production"}:
             if self.local_auth_bypass or self.auto_create_schema:
@@ -291,9 +325,7 @@ class Settings(BaseSettings):
                     self.field_encryption_keys,
                 ]
             ):
-                raise ValueError(
-                    "Plaid requires credentials and a configured field encryption key"
-                )
+                raise ValueError("Plaid requires credentials and a configured field encryption key")
             if self.field_encryption_active_key_version and (
                 self.field_encryption_active_key_version not in self.field_encryption_keys
             ):
@@ -312,9 +344,7 @@ class Settings(BaseSettings):
                 raise ValueError("Codestra middleware configuration is incomplete")
             if self.codestra_sdk_enabled:
                 if self.middleware_provider != "codestra":
-                    raise ValueError(
-                        "CODESTRA_SDK_ENABLED requires MIDDLEWARE_PROVIDER=codestra"
-                    )
+                    raise ValueError("CODESTRA_SDK_ENABLED requires MIDDLEWARE_PROVIDER=codestra")
                 if not self.codestra_sdk_capabilities:
                     raise ValueError(
                         "CODESTRA_SDK_ENABLED requires a nonempty capability allowlist"
